@@ -1,0 +1,183 @@
+---
+title: "Interactive Graphics with R"
+author: "Chris Wolfe"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: journal
+    highlight: breezedark
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(highcharter)
+library(plotly)
+```
+
+```{r, include = FALSE}
+d <- read_rds('pufp_data.rds')
+source('interactive_functions.R')
+```
+
+# Interactive Graphics with R
+<br>
+
+Hadley Wickham begins his book, *R for Data Science*, with a quote from the great John Tukey:
+
+<div align="center">*"The simple graph has brough more information to the data analyst's mind than any other device."*
+<div align="left">
+
+Among the advantages of using R, the data visualization capabilities rank very high. The base `plot()` function and *ggplot2* allow for quick and easy exploration of your data.  In the words of [Carson Seivert](https://talks.cpsievert.me/20180202/#1), interactive graphics 'augment exploratory analysis.' He also has a great [book](https://plotly-r.com/index.html).
+
+This talk doesnt doesnt cover everything...  Like a lot of RUG talks, I am trying to cram a workshop into a 30 minute presentation.  This hopefully will give you an overview of what is possible and provide you with some good resources.
+
+## *htmlwidgets*
+
+Interactive graphics in R is made possible through *htmlwidgets*---a framework for easily creating R bindings to JavaScript libraries.  In short, JavaScript is a programming language use for interactive web pages. From the `htmlwidgets` package documentation, widgets created using this framework can:
+
+  - Used at the R console for data analysis just like conventional R plots (via RStudio Viewer).
+  - Seamlessly embedded within R Markdown documents and Shiny web applications.
+  - Saved as standalone web pages for ad-hoc sharing via email, Dropbox, etc.
+
+There are a number of R [packages](https://www.htmlwidgets.org/showcase_leaflet.html) for interactive graphics built with `htmlwidgets`.
+
+### `Crosstalk`
+
+[Crosstalk](https://rstudio.github.io/crosstalk/index.html) is an add-on to `htmlwidgets` and allows different widgets to communicate. With Crosstalk, you an add filtering options and linked brushing to your visualizations without runtime R dependencies (i.e. Shiny).  Visualizations created with Crosstalk function as standalone HTML documents that can be hosted anywere.
+
+## `ggplot2`
+
+Both `plotly` and `highcharter` use incorporate [`ggplot2`](https://ggplot2.tidyverse.org/reference/) concepts, so a good understanding of `ggplot2` is important.  Advanced knowledge is not required though.
+
+`ggplot2` is a part of the *tidyverse* and is a versatile data visualization and graphics package. 
+
+With `ggplot2`, you begin a plot with the function `ggplot()`. 
+
+- `ggplot()` creates a coordinate system that you can add layers to. 
+- The first argument of `ggplot()` is the dataset to use in the graph. 
+
+```{r, eval = FALSE}
+* ggplot2::ggplot(data = my_data) # THIS CREATES A BLANK TEMPLATE
+```
+
+From there, you can add one or more layers to the template. Layers are added through 'geom functions'. 
+
+Each geom function is preceded by a plus sign (+). For `ggplot2` the plus sign act similarly to the `%>%` opearator.
+
+```{r, eval = FALSE}
+* ggplot2::ggplot(data = my_data) +
+*  geom_point()  # THIS CREATES A SCATTER PLOT
+  
+```
+
+
+Each geom function takes a `asthetic` argument, which defines how variables in your data are mapped to visual properties.
+
+When specified within `ggplot()`, all other layers in the plot will inherit it.
+  - `x` and `y` arguments of `aes()` specify which variables to map to the X and Y axes. 
+  - you can also map a third variable to your asthetic, to distinguish specific points or visually evaluate a hypothesis.
+  - you can specify this third variable to be a specific color, shape, size, etc.
+
+### Geoms of `ggplot2`
+
+There are numerous [`geoms_`](https://ggplot2.tidyverse.org/reference/) functions to create and layer data with `ggplot2`.  Some common geoms include:
+
+  - `geom_boxplot()`
+  - `geom_line()`
+  - `geom_boxplot()`
+  - `geom_bar()`
+  - `geom_histogram()`
+  - `geom_density()`
+  - `geom_sf()`
+
+## `plotly`
+
+Good news! If you know how to create a graph with `ggplot2`, you can create an interactive graph with `plotly`.  In many cases, transforming a static plot to one that is interactive requires one line of code.
+
+The plot below shows scatterplot of time-series data from a personal ultrafine (UFP) partilce sensor.
+
+```{r}
+gg_ufp <- ggplot(d) +
+    geom_point(aes(Time, UFP_conc250, color = as.factor(ufp_cat))) +
+    scale_color_manual(values = c("#0D0887FF", "#7E03A8FF", "#CC4678FF", "#F89441FF", "#F0F921FF"),
+                       labels = c(" < 25K", " > 25K - 50K", " > 50 - 75K", " > 75K - 100K", " > 100K")) +
+    xlab("Time") +
+    ylab("UFP Concentration (particles/cc)") +
+    theme(legend.title = element_blank()) 
+
+gg_ufp
+```
+
+```{r}
+plotly::ggplotly(gg_ufp)
+```
+
+[Plotly](https://plotly.com/r/) is an open source JavaScript library. The `plotly` R package bridges the gap between the JS code and R.
+
+There are two main ways to create a **plotly** object:
+  - with the `ggplotly()` function (like above)
+  - initializing a **plotly** object with `plotl_ly()`
+  
+```{r}
+
+plot_ly(d, x = ~Date_Time, y = ~UFP_conc) 
+
+```
+
+### Formatting the Tooltip
+
+The `ggplotly()` functions takes the values of your data and puts them directly into the tooltip (hover box).  This can be formatted by adding tooltip text to the `aes()` function.
+
+```{r eval = FALSE}
+text = paste('Time:', Time,
+             '<br>UFP:', scales::comma(UFP_conc250)))
+```
+
+
+```{r, echo = FALSE, warning = FALSE}
+
+gg_ufp2 <- ggplot(d) +
+    geom_point(aes(Time, UFP_conc250, color = as.factor(ufp_cat),
+                   text = paste('Time:', Time,
+                                     '<br>UFP:', scales::comma(UFP_conc250)))) +
+    scale_color_manual(values = c("#0D0887FF", "#7E03A8FF", "#CC4678FF", "#F89441FF", "#F0F921FF"),
+                       labels = c(" < 25K", " > 25K - 50K", " > 50 - 75K", " > 75K - 100K", " > 100K")) +
+    xlab("Time") +
+    ylab("UFP Concentration (particles/cc)") +
+    theme(legend.title = element_blank()) 
+
+plotly::ggplotly(gg_ufp2, tooltip = 'text')
+
+```
+
+### Plotly in Practice
+
+An example of **plotly** in an interactive web-app can be seen [here](http://clinic.predictfev1.com/).
+
+## `highcharter`
+
+[`highcharter`](https://jkunst.com/highcharter/) is a wrapper for the [Highcharts](https://www.highcharts.com/) JS library.
+
+```{r}
+ufp_hchart(d)
+```
+
+```{r}
+ufp_hchart(d, TRUE)
+```
+
+## `mapdeck`
+
+[Mapdeck](https://github.com/SymbolixAU/mapdeck) is an R library which lets you plot large data sets (as much as your GPU & browser can handle), on interactive maps using Mapbox GL and Deck.gl.
+
+```{r}
+ufp_deck(d)
+```
+
+  
