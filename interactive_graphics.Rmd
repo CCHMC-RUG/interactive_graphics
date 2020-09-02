@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(highcharter)
 library(plotly)
+library(mapdeck)
 ```
 
 ```{r, include = FALSE}
@@ -26,12 +27,13 @@ source('interactive_functions.R')
 ```
 
 # Interactive Graphics with R
-<br>
+
 
 Hadley Wickham begins his book, *R for Data Science*, with a quote from the great John Tukey:
 
 <div align="center">*"The simple graph has brough more information to the data analyst's mind than any other device."*
 <div align="left">
+<br>
 
 Among the advantages of using R, the data visualization capabilities rank very high. The base `plot()` function and *ggplot2* allow for quick and easy exploration of your data.  In the words of [Carson Seivert](https://talks.cpsievert.me/20180202/#1), interactive graphics 'augment exploratory analysis.' He also has a great [book](https://plotly-r.com/index.html).
 
@@ -59,8 +61,8 @@ Both `plotly` and `highcharter` use incorporate [`ggplot2`](https://ggplot2.tidy
 
 With `ggplot2`, you begin a plot with the function `ggplot()`. 
 
-- `ggplot()` creates a coordinate system that you can add layers to. 
-- The first argument of `ggplot()` is the dataset to use in the graph. 
+  - `ggplot()` creates a coordinate system that you can add layers to. 
+  - The first argument of `ggplot()` is the dataset to use in the graph. 
 
 ```{r, eval = FALSE}
 * ggplot2::ggplot(data = my_data) # THIS CREATES A BLANK TEMPLATE
@@ -80,6 +82,7 @@ Each geom function is preceded by a plus sign (+). For `ggplot2` the plus sign a
 Each geom function takes a `asthetic` argument, which defines how variables in your data are mapped to visual properties.
 
 When specified within `ggplot()`, all other layers in the plot will inherit it.
+
   - `x` and `y` arguments of `aes()` specify which variables to map to the X and Y axes. 
   - you can also map a third variable to your asthetic, to distinguish specific points or visually evaluate a hypothesis.
   - you can specify this third variable to be a specific color, shape, size, etc.
@@ -114,17 +117,18 @@ gg_ufp <- ggplot(d) +
 gg_ufp
 ```
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 plotly::ggplotly(gg_ufp)
 ```
 
 [Plotly](https://plotly.com/r/) is an open source JavaScript library. The `plotly` R package bridges the gap between the JS code and R.
 
 There are two main ways to create a **plotly** object:
+
   - with the `ggplotly()` function (like above)
   - initializing a **plotly** object with `plotl_ly()`
   
-```{r}
+```{r, message = FALSE, warning = FALSE}
 
 plot_ly(d, x = ~Date_Time, y = ~UFP_conc) 
 
@@ -176,7 +180,7 @@ ufp_hchart(d, TRUE)
 
 [Mapdeck](https://github.com/SymbolixAU/mapdeck) is an R library which lets you plot large data sets (as much as your GPU & browser can handle), on interactive maps using Mapbox GL and Deck.gl.
 
-```{r}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 ufp_deck(d)
 ```
 

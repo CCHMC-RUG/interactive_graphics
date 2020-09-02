@@ -1,4 +1,6 @@
 
+devtools::install_github("wolfeclw/pufpR")
+
 ufp_hchart <- function(d, pl_colored = FALSE) {
   
   dh <- d %>% 
